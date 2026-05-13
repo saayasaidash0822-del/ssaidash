@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Правовой Квиз: Уголовное Право</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .screen {
+            padding: 40px;
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Start Screen */
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-screen .main-image {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .info-box {
+            background: #f7fafc;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-box li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .info-box li:before {
+            content: "⚖️";
+            position: absolute;
+            left: 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        /* Quiz Screen */
+        .progress-bar {
+            background: #e2e8f0;
+            height: 10px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .question-text {
+            font-size: 1.4em;
+            color: #2d3748;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        .question-image {
+            width: 100%;
+            max-width: 300px;
+            margin: 20px auto;
+            display: block;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .answers {
+            display: grid;
+            gap: 15px;
+        }
+
+        .answer-btn {
+            background: white;
+            border: 3px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            font-size: 1.1em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .answer-btn:hover:not(.disabled) {
+            border-color: #667eea;
+            background: #f7fafc;
+            transform: translateX(5px);
+        }
+
+        .answer-btn.correct {
+            border-color: #48bb78;
+            background: #f0fff4;
+            animation: correct 0.5s;
+        }
+
+        .answer-btn.wrong {
+            border-color: #f56565;
+            background: #fff5f5;
+            animation: wrong 0.5s;
+        }
+
+        .answer-btn.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        @keyframes correct {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes wrong {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .answer-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5em;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: #f0fff4;
+            border: 2px solid #48bb78;
+            color: #22543d;
+        }
+
+        .feedback.wrong {
+            background: #fff5f5;
+            border: 2px solid #f56565;
+            color: #742a2a;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .next-btn {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .next-btn.show {
+            display: inline-block;
+        }
+
+        /* Result Screen */
+        .result-screen {
+            text-align: center;
+        }
+
+        .result-image {
+            width: 150px;
+            height: 150px;
+            margin: 20px auto;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #667eea;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            margin: 30px auto;
+            border-radius: 50%;
+            background: conic-gradient(#667eea calc(var(--score) * 1%), #e2e8f0 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .score-text {
+            position: relative;
+            z-index: 1;
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .result-message {
+            font-size: 1.5em;
+            color: #2d3748;
+            margin: 20px 0;
+        }
+
+        .result-details {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .result-details p {
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px;
+            font-size: 1.2em;
+        }
+
+        .badge-excellent {
+            background: #48bb78;
+            color: white;
+        }
+
+        .badge-good {
+            background: #4299e1;
+            color: white;
+        }
+
+        .badge-average {
+            background: #ed8936;
+            color: white;
+        }
+
+        .badge-try-again {
+            background: #f56565;
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .screen {
+                padding: 20px;
+            }
+            
+            .question-text {
+                font-size: 1.2em;
+            }
+            
+            .btn {
+                padding: 12px 30px;
+                font-size: 1em;
+            }
+        }
+
+        /* Timer */
+        .timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .timer.warning {
+            background: rgba(245, 101, 101, 0.8);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .decorative-scale {
+            position: fixed;
+            opacity: 0.05;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .scale-1 { top: 10%; left: 5%; width: 150px; }
+        .scale-2 { bottom: 10%; right: 5%; width: 120px; }
+    </style>
+</head>
+<body>
+    <!-- Decorative elements -->
+    <img src="https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/01ae72170-9a75-4862-bdcd-39a6763266348688.png" alt="" class="decorative-scale scale-1">
+    <img src="https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/01ae72170-9a75-4862-bdcd-39a6763266348941.png" alt="" class="decorative-scale scale-2">
+
+    <div class="game-container">
+        <div class="header">
+            <img src="https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/31ae72170-9a75-4862-bdcd-39a6763266341228.png" alt="Lady Justice">
+            <h1>⚖️ Правовой Квиз</h1>
+            <p>Уголовное право и права человека</p>
+        </div>
+
+        <!-- Start Screen -->
+        <div class="screen start-screen active" id="startScreen">
+            <img src="https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/41ae72170-9a75-4862-bdcd-39a6763266346638.png" alt="Justice Shield" class="main-image">
+            
+            <div class="info-box">
+                <h3>📋 Правила игры:</h3>
+                <ul>
+                    <li>10 вопросов по уголовному праву</li>
+                    <li>30 секунд на каждый вопрос</li>
+                    <li>1 балл за правильный ответ</li>
+                    <li>Темы: преступление, ответственность, права</li>
+                </ul>
+            </div>
+
+            <div class="info-box">
+                <h3>🎯 Цель игры:</h3>
+                <p>Проверить свои знания в области уголовного права и прав человека. Узнайте, насколько хорошо вы разбираетесь в вопросах уголовной ответственности и защиты прав личности!</p>
+            </div>
+
+            <button class="btn" onclick="startGame()">🚀 Начать игру</button>
+            <button class="btn btn-secondary" onclick="showRules()">📖 Правила подробнее</button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div class="screen" id="quizScreen">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+            
+            <div class="timer" id="timer">⏱️ 30</div>
+            
+            <div class="question-number" id="questionNumber">Вопрос 1 из 10</div>
+            <div class="question-text" id="questionText"></div>
+            <img src="" alt="" class="question-image" id="questionImage" style="display: none;">
+            
+            <div class="answers" id="answers"></div>
+            
+            <div class="feedback" id="feedback"></div>
+            <button class="btn next-btn" id="nextBtn" onclick="nextQuestion()">Следующий вопрос →</button>
+        </div>
+
+        <!-- Result Screen -->
+        <div class="screen result-screen" id="resultScreen">
+            <img src="https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/11ae72170-9a75-4862-bdcd-39a6763266343299.png" alt="Justice" class="result-image">
+            
+            <h2>🏆 Игра завершена!</h2>
+            
+            <div class="score-circle" id="scoreCircle" style="--score: 0">
+                <div class="score-text" id="scoreText">0/10</div>
+            </div>
+            
+            <div class="result-message" id="resultMessage"></div>
+            <div class="badge" id="badge"></div>
+            
+            <div class="result-details">
+                <p>📊 <strong>Правильных ответов:</strong> <span id="correctCount">0</span></p>
+                <p>📉 <strong>Неправильных ответов:</strong> <span id="wrongCount">0</span></p>
+                <p>⏰ <strong>Среднее время:</strong> <span id="avgTime">0</span> сек</p>
+            </div>
+
+            <button class="btn" onclick="restartGame()">🔄 Играть снова</button>
+            <button class="btn btn-secondary" onclick="showStartScreen()">🏠 На главную</button>
+        </div>
+    </div>
+
+    <script>
+        // Questions data
+        const questions = [
+            {
+                question: "Преступлением согласно УК РФ признаётся:",
+                image: "https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/21ae72170-9a75-4862-bdcd-39a6763266348759.png",
+                answers: [
+                    "Любое нарушение правил поведения в обществе",
+                    "Виновно совершённое общественно опасное деяние, запрещённое УК под угрозой наказания",
+                    "Действие, за которое предусмотрено административное наказание",
+                    "Нарушение моральных норм"
+                ],
+                correct: 1,
+                explanation: "Преступление — это виновно совершённое общественно опасное деяние, запрещённое Уголовным кодексом под угрозой наказания (ст. 14 УК РФ)."
+            },
+            {
+                question: "С какого возраста наступает уголовная ответственность по общему правилу в РФ?",
+                image: "https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/31ae72170-9a75-4862-bdcd-39a6763266344460.png",
+                answers: [
+                    "С 12 лет",
+                    "С 14 лет",
+                    "С 16 лет",
+                    "С 18 лет"
+                ],
+                correct: 2,
+                explanation: "По общему правилу уголовная ответственность наступает с 16 лет (ст. 20 УК РФ)."
+            },
+            {
+                question: "За какие преступления уголовная ответственность наступает с 14 лет?",
+                image: "https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/51ae72170-9a75-4862-bdcd-39a6763266345885.png",
+                answers: [
+                    "Только за кражу",
+                    "За убийство, причинение тяжкого вреда здоровью, изнасилование, кражу, грабёж, разбой и др.",
+                    "За все преступления, перечисленные в УК РФ",
+                    "Только за преступления против личности"
+                ],
+                correct: 1,
+                explanation: "С 14 лет ответственность наступает за особо тяжкие преступления: убийство, причинение тяжкого вреда здоровью, изнасилование, кражу, грабёж, разбой, вымогательство и другие (ст. 20 УК РФ)."
+            },
+            {
+                question: "Половая неприкосновенность — это:",
+                image: "https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/01ae72170-9a75-4862-bdcd-39a6763266345213.png",
+                answers: [
+                    "Право человека самостоятельно решать вопросы своей интимной жизни без принуждения и насилия",
+                    "Запрет на вступление в брак до 18 лет",
+                    "Обязанность хранить тайну личной жизни",
+                    "Право на получение информации о репродуктивном здоровье"
+                ],
+                correct: 0,
+                explanation: "Половая неприкосновенность — это право человека самостоятельно решать вопросы своей интимной жизни без принуждения и насилия. Это одно из фундаментальных прав личности."
+            },
+            {
+                question: "Какая статья УК РФ предусматривает ответственность за половое сношение с лицом, не достигшим 16-летнего возраста?",
+                image: "https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/31ae72170-9a75-4862-bdcd-39a6763266341240.png",
+                answers: [
+                    "Статья 131 УК РФ",
+                    "Статья 132 УК РФ",
+                    "Статья 134 УК РФ",
+                    "Статья 135 УК РФ"
+                ],
+                correct: 2,
+                explanation: "Статья 134 УК РФ предусматривает ответственность за половое сношение и иные действия сексуального характера с лицом, не достигшим 16-летнего возраста."
+            },
+            {
+                question: "Какой вид наказания НЕ может быть назначен несовершеннолетнему?",
+                image: "https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/41ae72170-9a75-4862-bdcd-39a6763266346991.png",
+                answers: [
+                    "Штраф",
+                    "Обязательные работы",
+                    "Пожизненное лишение свободы",
+                    "Лишение свободы на определённый срок"
+                ],
+                correct: 2,
+                explanation: "Несовершеннолетним не может быть назначено пожизненное лишение свободы, а также смертная казнь. К ним применяются специальные виды наказаний (ст. 88 УК РФ)."
+            },
+            {
+                question: "Что из перечисленного относится к смягчающим обстоятельствам?",
+                image: "https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/21ae72170-9a75-4862-bdcd-39a6763266343782.png",
+                answers: [
+                    "Совершение преступления группой лиц",
+                    "Несовершеннолетие виновного, явка с повинной, заглаживание вреда",
+                    "Рецидив преступлений",
+                    "Использование служебного положения"
+                ],
+                correct: 1,
+                explanation: "К смягчающим обстоятельствам относятся: несовершеннолетие, беременность, явка с повинной, активное способствование раскрытию преступления, заглаживание вреда (ст. 61 УК РФ)."
+            },
+            {
+                question: "Развратные действия в отношении несовершеннолетнего предусмотрены:",
+                image: "https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/11ae72170-9a75-4862-bdcd-39a6763266349589.png",
+                answers: [
+                    "Статья 131 УК РФ",
+                    "Статья 133 УК РФ",
+                    "Статья 135 УК РФ",
+                    "Статья 137 УК РФ"
+                ],
+                correct: 2,
+                explanation: "Статья 135 УК РФ предусматривает ответственность за развратные действия в отношении лица, не достигшего 16-летнего возраста."
+            },
+            {
+                question: "Изнасилование (ст. 131 УК РФ) относится к преступлениям:",
+                image: "https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/01ae72170-9a75-4862-bdcd-39a6763266348941.png",
+                answers: [
+                    "Против собственности",
+                    "Против половой неприкосновенности и половой свободы личности",
+                    "Против здоровья населения",
+                    "Против общественной безопасности"
+                ],
+                correct: 1,
+                explanation: "Изнасилование (ст. 131 УК РФ) относится к преступлениям против половой неприкосновенности и половой свободы личности (Глава 18 УК РФ)."
+            },
+            {
+                question: "Принудительные меры воспитательного воздействия:",
+                image: "https://image.qwenlm.ai/public_source/7c58a562-ec0d-4446-818f-226cc4dbd860/11ae72170-9a75-4862-bdcd-39a6763266344011.png",
+                answers: [
+                    "Влекут судимость",
+                    "Не влекут судимости",
+                    "Применяются только к взрослым",
+                    "Являются видом уголовного наказания"
+                ],
+                correct: 1,
+                explanation: "Принудительные меры воспитательного воздействия не являются уголовным наказанием и не влекут судимости. Они применяются к несовершеннолетним (ст. 90-92 УК РФ)."
+            }
+        ];
+
+        // Game state
+        let currentQuestion = 0;
+        let score = 0;
+        let timer;
+        let timeLeft = 30;
+        let questionStartTime;
+        let questionTimes = [];
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+
+        // Functions
+        function startGame() {
+            currentQuestion = 0;
+            score = 0;
+            correctAnswers = 0;
+            wrongAnswers = 0;
+            questionTimes = [];
+            showScreen('quizScreen');
+            loadQuestion();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showStartScreen() {
+            showScreen('startScreen');
+        }
+
+        function showRules() {
+            alert("📖 ПРАВИЛА ИГРЫ:\n\n" +
+                  "• 10 вопросов по уголовному праву\n" +
+                  "• 30 секунд на каждый вопрос\n" +
+                  "• 1 балл за правильный ответ\n" +
+                  "• Максимальный результат: 10 баллов\n\n" +
+                  "ОЦЕНКИ:\n" +
+                  "9-10 баллов: Отлично! 🌟\n" +
+                  "7-8 баллов: Хорошо! 👍\n" +
+                  "5-6 баллов: Удовлетворительно 👌\n" +
+                  "0-4 балла: Нужно подучить материал 📚");
+        }
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            questionStartTime = Date.now();
+            
+            // Update progress
+            const progress = ((currentQuestion) / questions.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            // Update question
+            document.getElementById('questionNumber').textContent = 
+                `Вопрос ${currentQuestion + 1} из ${questions.length}`;
+            document.getElementById('questionText').textContent = q.question;
+            
+            // Update image
+            const img = document.getElementById('questionImage');
+            if (q.image) {
+                img.src = q.image;
+                img.style.display = 'block';
+            } else {
+                img.style.display = 'none';
+            }
+            
+            // Create answer buttons
+            const answersDiv = document.getElementById('answers');
+            answersDiv.innerHTML = '';
+            
+            q.answers.forEach((answer, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.innerHTML = `
+                    <span>${String.fromCharCode(65 + index)}. ${answer}</span>
+                    <span class="answer-icon" id="icon${index}"></span>
+                `;
+                btn.onclick = () => checkAnswer(index);
+                answersDiv.appendChild(btn);
+            });
+            
+            // Hide feedback and next button
+            document.getElementById('feedback').classList.remove('show');
+            document.getElementById('nextBtn').classList.remove('show');
+            
+            // Start timer
+            startTimer();
+        }
+
+        function startTimer() {
+            timeLeft = 30;
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = `⏱️ ${timeLeft}`;
+            timerEl.classList.remove('warning');
+            
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                timerEl.textContent = `⏱️ ${timeLeft}`;
+                
+                if (timeLeft <= 10) {
+                    timerEl.classList.add('warning');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    timeOut();
+                }
+            }, 1000);
+        }
+
+        function timeOut() {
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach((btn, index) => {
+                btn.classList.add('disabled');
+                if (index === questions[currentQuestion].correct) {
+                    btn.classList.add('correct');
+                    document.getElementById(`icon${index}`).textContent = '✓';
+                }
+            });
+            
+            showFeedback(false, "⏰ Время вышло! Правильный ответ выделен.");
+            wrongAnswers++;
+            questionTimes.push(30);
+        }
+
+        function checkAnswer(selectedIndex) {
+            clearInterval(timer);
+            
+            const timeSpent = (Date.now() - questionStartTime) / 1000;
+            questionTimes.push(timeSpent);
+            
+            const buttons = document.querySelectorAll('.answer-btn');
+            const q = questions[currentQuestion];
+            
+            buttons.forEach((btn, index) => {
+                btn.classList.add('disabled');
+                if (index === q.correct) {
+                    btn.classList.add('correct');
+                    document.getElementById(`icon${index}`).textContent = '✓';
+                } else if (index === selectedIndex && index !== q.correct) {
+                    btn.classList.add('wrong');
+                    document.getElementById(`icon${index}`).textContent = '✗';
+                }
+            });
+            
+            if (selectedIndex === q.correct) {
+                score++;
+                correctAnswers++;
+                showFeedback(true, "✅ Правильно! " + q.explanation);
+            } else {
+                wrongAnswers++;
+                showFeedback(false, "❌ Неправильно. " + q.explanation);
+            }
+            
+            document.getElementById('nextBtn').classList.add('show');
+        }
+
+        function showFeedback(isCorrect, text) {
+            const feedback = document.getElementById('feedback');
+            feedback.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+            feedback.innerHTML = text;
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            showScreen('resultScreen');
+            
+            // Animate score
+            const scorePercent = (score / questions.length) * 100;
+            setTimeout(() => {
+                document.getElementById('scoreCircle').style.setProperty('--score', scorePercent);
+            }, 100);
+            
+            document.getElementById('scoreText').textContent = `${score}/${questions.length}`;
+            document.getElementById('correctCount').textContent = correctAnswers;
+            document.getElementById('wrongCount').textContent = wrongAnswers;
+            
+            // Calculate average time
+            const avgTime = questionTimes.reduce((a, b) => a + b, 0) / questionTimes.length;
+            document.getElementById('avgTime').textContent = avgTime.toFixed(1);
+            
+            // Set message and badge
+            const messageEl = document.getElementById('resultMessage');
+            const badgeEl = document.getElementById('badge');
+            
+            if (score >= 9) {
+                messageEl.textContent = "🌟 Отличный результат! Вы прекрасно разбираетесь в уголовном праве!";
+                badgeEl.className = 'badge badge-excellent';
+                badgeEl.textContent = '🏆 Эксперт права';
+            } else if (score >= 7) {
+                messageEl.textContent = "👍 Хороший результат! Вы хорошо знаете материал!";
+                badgeEl.className = 'badge badge-good';
+                badgeEl.textContent = '⭐ Знающий студент';
+            } else if (score >= 5) {
+                messageEl.textContent = "👌 Неплохо, но есть куда расти. Повторите материал!";
+                badgeEl.className = 'badge badge-average';
+                badgeEl.textContent = '📚 Ученик';
+            } else {
+                messageEl.textContent = "📚 Нужно ещё поработать над материалом. Не сдавайтесь!";
+                badgeEl.className = 'badge badge-try-again';
+                badgeEl.textContent = '🎓 Начинающий';
+            }
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Preload images
+            questions.forEach(q => {
+                if (q.image) {
+                    const img = new Image();
+                    img.src = q.image;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
